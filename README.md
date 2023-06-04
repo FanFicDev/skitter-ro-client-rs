@@ -44,6 +44,35 @@ be done in a few steps:
 This includes both `mypy` and `black` for type checking and auto formatting
 respectively:
 
-* `./venv/bin/mypy ./examples/pull_replicate.py`
-* `./venv/bin/black ./examples/pull_replicate.py`
+* `./venv/bin/mypy ./examples/*.py`
+* `./venv/bin/black ./examples/*.py`
+
+## examples/dump_id
+
+The `dump_id` examples showcase how to get the original raw utf-8 (or bust)
+response text for a given id. Response data is sent as a zlib compressed
+payload prefixed by a four byte big-endian expected decompressed size. If using
+Qt bindings this can be passed directly into `qUncompress` or
+`CompressedWeb.decompress` shows how to decompress it using lower level zlib
+bindings.
+
+Usage examples:
+
+* `./examples/dump_id.py ./py_web.db 149470000 | md5sum`
+
+```
+CompressedWeb { id: 149470000, created: "2023-06-03T20:59:52.632Z", url: "https://www.example.com/s/6211915/1", status: 200, response.len: 21315 }
+          Web { id: 149470000, created: "2023-06-03T20:59:52.632Z", url: "https://www.example.com/s/6211915/1", status: 200, response.len: 61940 }
+25b87325527ba0f58cc5d42d2d420b24  -
+```
+
+* `cargo run --release --example dump_id ./web.db 149470000 | md5sum`
+
+```
+    Finished release [optimized] target(s) in 0.09s
+     Running `target/release/examples/dump_id ./web.db 149470000`
+CompressedWeb { id: 149470000, created: "2023-06-03 20:59:52.632 +00:00:00", url: "https://www.example.com/s/6211915/1", status: 200, response.len: 21315 }
+          Web { id: 149470000, created: "2023-06-03 20:59:52.632 +00:00:00", url: "https://www.example.com/s/6211915/1", status: 200, response.len: 61940 }
+25b87325527ba0f58cc5d42d2d420b24  -
+```
 

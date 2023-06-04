@@ -3,6 +3,14 @@
 `skitter-ro-client` is a small rust implementation of a client for the
 read-only (ro) skitter API.
 
+[./openapi.yaml](./openapi.yaml) contains an API specification. See it for
+details.
+[redocly](https://redocly.github.io/redoc/?url=https://zst1uv23.fanfic.dev/openapi.yaml)
+can display a rendered version.
+
+More information about how to decompress the response data is available in the
+[examples/dump_id](#examples/dump_id) section.
+
 ## examples/simple
 
 `example/simple` is a toy utility to showcase basic usage of the library.

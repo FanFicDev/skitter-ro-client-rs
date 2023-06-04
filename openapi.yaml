@@ -1,0 +1,151 @@
+openapi: "3.0.0"
+info:
+  version: 0.0.0
+  title: skitter-ro
+servers:
+  - url: https://zst1uv23.fanfic.dev
+paths:
+  /v0/web/stat:
+    get:
+      summary: Get stats about remote db, particularly the current max `web.id`.
+      operationId: get_web_stat
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: The stats about remote db, particularly current max `web.id`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebStat"
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v0/web/range:
+    get:
+      summary: Get a half-open sequence of entries by id (at most 1k).
+      operationId: get_web_range
+      security:
+        - basicAuth: []
+      parameters:
+        - name: min_wid
+          in: query
+          required: true
+          description: The inclusive minimum `web.id` used to filter results.
+          schema:
+            type: integer
+            format: int64
+        - name: max_wid
+          in: query
+          required: true
+          description: The exclusive maximum `web.id` used to filter results.
+          schema:
+            type: integer
+            format: int64
+        - name: url_like
+          in: query
+          required: false
+          description: A sql `like` query applied to `url` to filter results.
+          schema:
+            type: string
+            example: 'https://www.example.com/s/%'
+      responses:
+        '200':
+          description: A sequence of `CompressedWeb` entries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebRangeResponse"
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    Error:
+      description: |
+        Details about the unsuccessful fulfillment of a request.
+
+        Refer to the http status for a machine readable error code.
+      type: object
+      required:
+        - err
+      properties:
+        err:
+          description: The error code.
+          type: integer
+          format: int64
+        msg:
+          description: Human readable error message.
+          type: string
+    WebStat:
+      description: Details about the current status of the remote db.
+      type: object
+      required:
+        - max_wid
+      properties:
+        max_wid:
+          description: The current max `web.id`.
+          type: integer
+          format: int64
+    CompressedWeb:
+      description: A compressed web response record.
+      type: object
+      required:
+        - id
+        - created
+        - url
+        - status
+        - response
+      properties:
+        id:
+          description: The unique id.
+          type: integer
+          format: int64
+        created:
+          description: The RFC3339 datetime when the original web request happened.
+          type: string
+          format: date-time
+          example: 2023-06-01T23:28:37.971Z
+        url:
+          description: The original request URL.
+          type: string
+          example: https://example.com/s/100/1
+        status:
+          description: The original response status code.
+          type: integer
+          format: int16
+          example: 200
+        response:
+          description: |
+            The compressed original response body.
+
+            This is a zlib compressed payload prefixed by a four byte big-endian expected decompressed size.
+          type: string
+          format: byte
+          example: "AAAADHicS61IzC3ISVVIyk+pBAAfFwS7"
+    WebRangeResponse:
+      description: A sequence of `CompressedWeb`.
+      type: object
+      required:
+        - entries
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompressedWeb"
